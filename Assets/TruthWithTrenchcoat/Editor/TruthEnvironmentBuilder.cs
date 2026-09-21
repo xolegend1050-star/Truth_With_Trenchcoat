@@ -2,89 +2,494 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
-using System.Collections.Generic;
+using TruthWithTrenchcoat.Core;
 
+/// <summary>
+/// Master environment builder. Generates the complete dark sci-fi research facility
+/// with proper materials, detailed room dressing, lighting, and interactive wiring.
+///
+/// Menu: Truth With Trenchcoat > Build Detailed Environment
+/// </summary>
 public static class TruthEnvironmentBuilder
 {
-    static Transform root;
-    static Material wall, floor, darkMetal, glass, blueGlow, white, wood, black, accent, blood;
+    private static Transform root;
 
     [MenuItem("Truth With Trenchcoat/Build Detailed Environment")]
     public static void Build()
     {
         if (GameObject.Find("TRUTH_ENVIRONMENT"))
             Object.DestroyImmediate(GameObject.Find("TRUTH_ENVIRONMENT"));
-        var go = new GameObject("TRUTH_ENVIRONMENT"); root = go.transform;
-        MakeMaterials();
-        BuildArchitecture();
-        BuildRooms();
-        BuildLighting();
-        BuildPreviewCamera();
+
+        var go = new GameObject("TRUTH_ENVIRONMENT");
+        root = go.transform;
+
+        // Initialize systems
+        TruthWithTrenchcoat.EditorTools.MaterialLibrary.Initialize();
+        var M = TruthWithTrenchcoat.EditorTools.MaterialLibrary;
+
+        // Build everything
+        BuildArchitecture(M);
+        BuildRoomDressing(M);
+        TruthWithTrenchcoat.EditorTools.LightingRig.Build(root);
+        TruthWithTrenchcoat.EditorTools.InteractiveSetup.Wire(root);
+        AddPreviewCamera();
+
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-        Debug.Log("Truth With Trenchcoat environment built. This is a detailed procedural art/blockout pass using Unity primitives; replace selected props with final meshes later.");
+        EditorUtility.DisplayDialog(
+            "Environment Built",
+            "Complete environment generated with:\n" +
+            "- 8 rooms with proper architecture\n" +
+            "- Detailed furniture and props\n" +
+            "- Room-specific lighting (blue/dark for Security/Server, warm for Office, dim for Secret)\n" +
+            "- Interactive objects wired (doors, pickups, puzzles)\n" +
+            "- UI panels (instructions, clue popups)\n\n" +
+            "Next: Add XR Origin from XRI Starter Assets, tag it Player, press Play.\n" +
+            "Replace primitives with final 3D models as art pass.",
+            "OK");
         Selection.activeGameObject = go;
     }
 
-    static void MakeMaterials()
-    {
-        wall=Mat("Wall",new Color(.16f,.18f,.20f)); floor=Mat("Floor",new Color(.08f,.09f,.10f)); darkMetal=Mat("Metal",new Color(.10f,.12f,.14f)); glass=Mat("Glass",new Color(.08f,.16f,.19f)); blueGlow=Mat("BlueGlow",new Color(.03f,.25f,.55f),true); white=Mat("White",new Color(.65f,.68f,.70f)); wood=Mat("Wood",new Color(.20f,.12f,.07f)); black=Mat("Black",new Color(.015f,.018f,.02f)); accent=Mat("Accent",new Color(.28f,.32f,.35f)); blood=Mat("ClueDecal",new Color(.22f,.015f,.01f));
-    }
-    static Material Mat(string n, Color c, bool emission=false){var m=new Material(Shader.Find("Standard"));m.name=n;m.color=c;if(emission){m.EnableKeyword("_EMISSION");m.SetColor("_EmissionColor",c*2.5f);}return m;}
-    static GameObject Cube(string n, Vector3 p, Vector3 s, Material m, Transform par=null){var g=GameObject.CreatePrimitive(PrimitiveType.Cube);g.name=n;g.transform.SetParent(par??root);g.transform.localPosition=p;g.transform.localScale=s;g.GetComponent<Renderer>().sharedMaterial=m;return g;}
-    static GameObject Cyl(string n, Vector3 p, Vector3 s, Material m, Transform par=null){var g=GameObject.CreatePrimitive(PrimitiveType.Cylinder);g.name=n;g.transform.SetParent(par??root);g.transform.localPosition=p;g.transform.localScale=s;g.GetComponent<Renderer>().sharedMaterial=m;return g;}
-    static GameObject Sphere(string n, Vector3 p, Vector3 s, Material m, Transform par=null){var g=GameObject.CreatePrimitive(PrimitiveType.Sphere);g.name=n;g.transform.SetParent(par??root);g.transform.localPosition=p;g.transform.localScale=s;g.GetComponent<Renderer>().sharedMaterial=m;return g;}
-    static GameObject Empty(string n, Vector3 p, Transform par=null){var g=new GameObject(n);g.transform.SetParent(par??root);g.transform.localPosition=p;return g;}
+    // ==================== ARCHITECTURE ====================
 
-    static void Room(string name, Vector3 c, Vector2 size, bool dark=false)
+    private static void BuildArchitecture(var M)
     {
-        var r=Empty(name,c); Cube("Floor",Vector3.zero,new Vector3(size.x,.18f,size.y),floor,r); Cube("Ceiling",new Vector3(0,3.2f,0),new Vector3(size.x,.18f,size.y),darkMetal,r);
-        float w=.18f; Cube("Wall_N",new Vector3(0,1.6f,size.y/2),new Vector3(size.x,3.2f,w),wall,r); Cube("Wall_S",new Vector3(0,1.6f,-size.y/2),new Vector3(size.x,3.2f,w),wall,r); Cube("Wall_E",new Vector3(size.x/2,1.6f,0),new Vector3(w,3.2f,size.y),wall,r); Cube("Wall_W",new Vector3(-size.x/2,1.6f,0),new Vector3(w,3.2f,size.y),wall,r);
-        if(dark){ for(int x=-1;x<=1;x++){Cube("BlueLight",new Vector3(x*3,2.9f,0),new Vector3(1.2f,.06f,.12f),blueGlow,r);} }
-    }
-    static void BuildArchitecture()
-    {
-        // Layout follows the GDD: Main Lab central; Entrance west; Bathroom east; Office south; Secret behind Office; Storage/Server/Security north.
-        Room("MainLab",new Vector3(0,0,0),new Vector2(12,10));
-        Room("Entrance",new Vector3(-9,0,0),new Vector2(5,5));
-        Room("Bathroom",new Vector3(9,0,0),new Vector2(5,5));
-        Room("DrOffice",new Vector3(2,-7,0),new Vector2(7,5));
-        Room("SecretRoom",new Vector3(2,-12.5f,0),new Vector2(7,5),true);
-        Room("ServerRoom",new Vector3(0,7,0),new Vector2(6,4.5f),true);
-        Room("Storage",new Vector3(-5.5f,7,0),new Vector2(4.5f,4.5f),true);
-        Room("SecurityRoom",new Vector3(5.5f,7,0),new Vector2(4.5f,4.5f),true);
-        // Door openings are represented by darker door slabs; remove/replace wall sections as final art pass.
-        Door("MainEntranceDoor",new Vector3(-6.05f,1.25f,0),new Vector3(.25f,2.5f,2.0f));
-        Door("OfficeDoor",new Vector3(2,1.25f,-5.05f),new Vector3(2.0f,2.5f,.25f));
-        Door("BathroomDoor",new Vector3(6.05f,1.25f,0),new Vector3(.25f,2.5f,2.0f));
-        Door("ServerDoor",new Vector3(0,1.25f,5.05f),new Vector3(2,2.5f,.25f));
-        Door("SecurityDoor",new Vector3(5.5f,1.25f,4.75f),new Vector3(1.8f,2.5f,.25f));
-        Door("StorageDoor",new Vector3(-3.25f,1.25f,7),new Vector3(.25f,2.5f,1.8f));
-        Door("SecretSlidingWall",new Vector3(2,1.25f,-9.55f),new Vector3(3.0f,2.5f,.18f));
-    }
-    static void Door(string n,Vector3 p,Vector3 s){Cube(n,p,s,darkMetal);Cube(n+"_Handle",p+new Vector3(s.x>.5f?0.7f:.18f,0, s.z>.5f?0.7f:.18f),new Vector3(.08f,.35f,.08f),accent);}
+        var arch = new GameObject("Architecture");
+        arch.transform.SetParent(root, false);
 
-    static void BuildRooms()
-    {
-        MainLab(); Office(); Storage(); Server(); Security(); Bathroom(); Secret(); Entrance();
+        // Room positions from GDD coordinates
+        // Main Lab: center (0,0,0), 14x14m, 3.5m height
+        Room(arch, "MainLab", new Vector3(0, 0, 0), new Vector2(14, 14), 3.5f, M.WallConcrete, M.FloorDark, M.CeilingPanel, false);
+
+        // Entrance: (-20, 0, 0), 6x6m, 3m
+        Room(arch, "Entrance", new Vector3(-20, 0, 0), new Vector2(6, 6), 3f, M.CorridorWall, M.FloorTile, M.CeilingPanel, false);
+
+        // Dr's Office: (0, 0, -12), 7x7m, 3m
+        Room(arch, "DrOffice", new Vector3(0, 0, -12), new Vector2(7, 7), 3f, M.WallPanel, M.FloorDark, M.CeilingPanel, false);
+
+        // Secret Room: (0, 0, -22), 9x9m, 3m
+        Room(arch, "SecretRoom", new Vector3(0, 0, -22), new Vector2(9, 9), 3f, M.SecretBlueWall, M.DarkConcrete, M.DarkMetal, true);
+
+        // Bathroom: (16, 0, 0), 5x5m, 3m
+        Room(arch, "Bathroom", new Vector3(16, 0, 0), new Vector2(5, 5), 3f, M.WhiteTile, M.FloorTile, M.CeilingPanel, false);
+
+        // Security Room: (14, 0, 10), 7x7m, 3m
+        Room(arch, "SecurityRoom", new Vector3(14, 0, 10), new Vector2(7, 7), 3f, M.WallPanel, M.FloorDark, M.DarkMetal, true);
+
+        // Server Room: (0, 0, 10), 7x7m, 3m
+        Room(arch, "ServerRoom", new Vector3(0, 0, 10), new Vector2(7, 7), 3f, M.WallPanel, M.FloorDark, M.DarkMetal, true);
+
+        // Storage: (-14, 0, 10), 7x7m, 3m
+        Room(arch, "Storage", new Vector3(-14, 0, 10), new Vector2(7, 7), 3f, M.WallConcrete, M.FloorDark, M.CeilingPanel, true);
+
+        // Corridors (walkable floor strips)
+        Corridor(arch, "Corr_Entrance_Lab", new Vector3(-10, -0.05f, 0), new Vector3(10, 0.1f, 2.4f), M.FloorTile);
+        Corridor(arch, "Corr_Lab_Bathroom", new Vector3(12.5f, -0.05f, 0), new Vector3(7, 0.1f, 2.4f), M.FloorTile);
+        Corridor(arch, "Corr_Lab_Office", new Vector3(0, -0.05f, -9), new Vector3(2.4f, 0.1f, 6), M.FloorTile);
+        Corridor(arch, "Corr_Lab_Server", new Vector3(0, -0.05f, 8.2f), new Vector3(2.4f, 0.1f, 3.5f), M.FloorTile);
+        Corridor(arch, "Corr_Lab_Security", new Vector3(8, -0.05f, 6.5f), new Vector3(2.4f, 0.1f, 5), M.FloorTile);
+        Corridor(arch, "Corr_Server_Storage", new Vector3(-7, -0.05f, 10), new Vector3(7, 0.1f, 2.4f), M.FloorTile);
+        Corridor(arch, "Corr_Office_Secret", new Vector3(0, -0.05f, -17), new Vector3(2.4f, 0.1f, 7), M.FloorDark);
+
+        // Doors
+        BuildDoors(arch, M);
     }
-    static void Table(Vector3 p,Vector3 s){Cube("TableTop",p+Vector3.up*s.y/2,new Vector3(s.x,.18f,s.z),wood); foreach(float x in new[]{-s.x*.42f,s.x*.42f}) foreach(float z in new[]{-s.z*.42f,s.z*.42f}) Cube("Leg",p+new Vector3(x,s.y/2*.0f,z),new Vector3(.16f,s.y,.16f),darkMetal);}
-    static void Chair(Vector3 p){Cyl("ChairSeat",p+new Vector3(0,.55f,0),new Vector3(.65f,.12f,.65f),black);Cube("ChairBack",p+new Vector3(0,1.15f,.28f),new Vector3(.7f,1.1f,.12f),black);Cyl("ChairStem",p+new Vector3(0,.25f,0),new Vector3(.12f,.5f,.12f),darkMetal);}
-    static void Monitor(Vector3 p,Vector3 scale=new Vector3(1.3f,.85f,.08f)){Cube("Monitor",p,scale,black);Cube("Screen",p+new Vector3(0,0,-.05f),scale*.8f,blueGlow);}
-    static void Cabinet(Vector3 p){Cube("Cabinet",p+Vector3.up*.9f,new Vector3(1.1f,1.8f,.65f),darkMetal);for(int i=0;i<3;i++)Cube("Drawer",p+new Vector3(0,.4f+i*.45f,-.34f),new Vector3(.9f,.35f,.05f),accent);}
-    static void MainLab(){var r=GameObject.Find("MainLab").transform;Table(new Vector3(0,0,0),new Vector3(5.5f,.9f,2.1f));Chair(new Vector3(-2,0,-1.7f));Chair(new Vector3(0,0,-1.7f));Chair(new Vector3(2,0,-1.7f));Monitor(new Vector3(0,1.45f,0));Monitor(new Vector3(-1.8f,1.35f,.2f),new Vector3(.9f,.6f,.06f));Laptop(new Vector3(2,1.08f,.2f));Cabinet(new Vector3(-4,0,3.8f));Cabinet(new Vector3(4,0,3.8f));Shelf(new Vector3(-4,1.6f,2.9f));Shelf(new Vector3(4,1.6f,2.9f));Watch(new Vector3(0,1.12f,.55f));BrokenPhone(new Vector3(-2.7f,1.05f,.3f));ClueMark(new Vector3(3.0f,.015f,2.2f));}
-    static void Office(){var r=GameObject.Find("DrOffice").transform;Table(new Vector3(2,-7,-.5f),new Vector3(3.5f,.75f,1.4f));Chair(new Vector3(2,-7,-1.8f));Monitor(new Vector3(2,-7+.95f,-.5f),new Vector3(1.4f,.8f,.08f));Cube("DeskLamp",new Vector3(3.1f,-7+.95f,-.2f),new Vector3(.18f,.9f,.18f),white);Cabinet(new Vector3(4.8f,-7,1.5f));Shelf(new Vector3(-.5f,-7,1.6f));Cube("StuckDrawer",new Vector3(4.6f,-7+.55f,-1.7f),new Vector3(1.2f,.6f,.8f),wood);Cube("WallPainting",new Vector3(4.9f,-7+1.7f,2.3f),new Vector3(1.8f,1.2f,.08f),accent);}
-    static void Storage(){Cabinet(new Vector3(-6.7f,7,-1.2f));Cabinet(new Vector3(-4.3f,7,-1.2f));Shelf(new Vector3(-6.8f,7,1.1f));for(int i=0;i<6;i++)Cube("StorageBox",new Vector3(-7.2f+(i%3)*1.1f,.55f+((i/3)*.8f),1.0f),new Vector3(.8f,.6f,.8f),wood);Cyl("Wrench",new Vector3(-5.1f,.55f,-1.5f),new Vector3(.08f,.65f,.08f),accent);Cube("KeychainHalf_A",new Vector3(-4.6f,.45f,-1.4f),new Vector3(.45f,.06f,.18f),accent);}
-    static void Server(){for(int x=-2;x<=2;x+=2) ServerRack(new Vector3(x,7,0));Cube("PowerRestorationPanel",new Vector3(2.7f,1.4f,1.8f),new Vector3(.12f,1.3f,1.2f),darkMetal);for(int i=0;i<4;i++)Cyl("PanelWire",new Vector3(2.55f,1.3f+.35f*i,1.2f),new Vector3(.05f,.05f,.5f),blueGlow);}
-    static void Security(){for(int i=-2;i<=2;i++){Monitor(new Vector3(5.5f+i*1.55f,8.0f,1.9f),new Vector3(1.25f,.8f,.08f));Monitor(new Vector3(5.5f+i*1.55f,7.0f,1.9f),new Vector3(1.25f,.8f,.08f));}Table(new Vector3(5.5f,7,-1.2f),new Vector3(3.5f,.8f,1.1f));Chair(new Vector3(5.5f,7,-2.1f));}
-    static void Bathroom(){var r=GameObject.Find("Bathroom").transform;Cube("Sink",new Vector3(8.0f,1.0f,1.7f),new Vector3(1.5f,.8f,.7f),white);Cube("Mirror",new Vector3(8.0f,2.0f,2.05f),new Vector3(1.5f,1.5f,.05f),glass);Cyl("Toilet",new Vector3(10,0.5f,1.7f),new Vector3(.55f,.5f,.55f),white);for(int i=0;i<2;i++)Cube("Stall",new Vector3(9+i*1.1f,1.3f,-1.2f),new Vector3(1,.05f,2.4f),wall);}
-    static void Secret(){Table(new Vector3(2,-12.5f,0),new Vector3(4.5f,.8f,1.5f));Monitor(new Vector3(2,-11.55f,0),new Vector3(1.8f,1.1f,.08f));Cube("ProjectECHO_ScreenGlow",new Vector3(2,-11.5f,.2f),new Vector3(2.5f,1.4f,.05f),blueGlow);Cube("AudioRecorder",new Vector3(3.2f,-11.98f,.2f),new Vector3(.5f,.25f,.35f),darkMetal);Cube("ECHO_Documents",new Vector3(1,-11.98f,.3f),new Vector3(.8f,.03f,.5f),white);Cube("KeychainHalf_B",new Vector3(4,-11.98f,.4f),new Vector3(.45f,.06f,.18f),accent);}
-    static void Entrance(){var r=GameObject.Find("Entrance").transform;Cube("EntranceDesk",new Vector3(-9,0,1),new Vector3(2.2f,.8f,1.0f),wood);Chair(new Vector3(-9,0,-.5f));Cube("Lockpick",new Vector3(-8.2f,1.0f,1),new Vector3(.7f,.08f,.08f),accent);}
-    static void Shelf(Vector3 p){for(int i=0;i<4;i++)Cube("Shelf",p+new Vector3(0,i*.65f,0),new Vector3(2.4f,.08f,.5f),darkMetal);Cube("ShelfSide",p+new Vector3(-1.1f,1.0f,0),new Vector3(.08f,2.1f,.5f),darkMetal);Cube("ShelfSide",p+new Vector3(1.1f,1.0f,0),new Vector3(.08f,2.1f,.5f),darkMetal);}
-    static void ServerRack(Vector3 p){Cube("ServerRack",p+Vector3.up*1.1f,new Vector3(1.0f,2.2f,.8f),darkMetal);for(int i=0;i<5;i++)Cube("ServerUnit",p+new Vector3(0,.35f+i*.35f,-.43f),new Vector3(.8f,.2f,.05f),black);for(int i=0;i<4;i++)Sphere("LED",p+new Vector3(-.3f+i*.2f,.5f,-.48f),new Vector3(.05f,.05f,.05f),blueGlow);}
-    static void Laptop(Vector3 p){Cube("LaptopBase",p,new Vector3(1.2f,.08f,.75f),darkMetal);Cube("LaptopScreen",p+new Vector3(0,.4f,.32f),new Vector3(1.1f,.75f,.08f),black);Cube("LaptopDisplay",p+new Vector3(0,.4f,.27f),new Vector3(.9f,.55f,.03f),blueGlow);}
-    static void Watch(Vector3 p){Cyl("StoppedWatch",p,new Vector3(.22f,.04f,.22f),white);}
-    static void BrokenPhone(Vector3 p){Cube("BrokenPhone",p,new Vector3(.55f,.07f,.95f),black);}
-    static void ClueMark(Vector3 p){Cube("ClueBloodMark",p,new Vector3(1.2f,.01f,.5f),blood);}
-    static void BuildLighting(){foreach(var room in GameObject.Find("TRUTH_ENVIRONMENT").GetComponentsInChildren<Transform>()){if(!room.name.Contains("Room")&&!room.name.Contains("Lab")&&!room.name.Contains("Office")&&!room.name.Contains("Bathroom")&&!room.name.Contains("Entrance"))continue;var l=new GameObject(room.name+"_Light").AddComponent<Light>();l.type=LightType.Point;l.range=9;l.intensity=3;l.transform.position=room.position+Vector3.up*2.7f;if(room.name.Contains("Security")||room.name.Contains("Server")||room.name.Contains("Secret"))l.color=new Color(.15f,.35f,1f);else l.color=new Color(1f,.92f,.8f);l.transform.SetParent(root);}}
-    static void BuildPreviewCamera(){var c=new GameObject("EnvironmentPreviewCamera").AddComponent<Camera>();c.transform.position=new Vector3(0,18,-24);c.transform.rotation=Quaternion.Euler(38,0,0);c.fieldOfView=55;c.transform.SetParent(root);}
+
+    private static void Room(GameObject parent, string name, Vector3 center, Vector2 size, float height,
+        Material wallMat, Material floorMat, Material ceilingMat, bool hasBlueLights)
+    {
+        var room = new GameObject(name);
+        room.transform.SetParent(parent.transform, false);
+        room.transform.localPosition = center;
+
+        // Floor
+        Cube("Floor", Vector3.zero, new Vector3(size.x, 0.18f, size.y), floorMat, room.transform);
+        // Ceiling
+        Cube("Ceiling", new Vector3(0, height, 0), new Vector3(size.x, 0.18f, size.y), ceilingMat, room.transform);
+
+        float w = 0.18f;
+        // Walls
+        Cube("Wall_N", new Vector3(0, height / 2f, size.y / 2f), new Vector3(size.x, height, w), wallMat, room.transform);
+        Cube("Wall_S", new Vector3(0, height / 2f, -size.y / 2f), new Vector3(size.x, height, w), wallMat, room.transform);
+        Cube("Wall_E", new Vector3(size.x / 2f, height / 2f, 0), new Vector3(w, height, size.y), wallMat, room.transform);
+        Cube("Wall_W", new Vector3(-size.x / 2f, height / 2f, 0), new Vector3(w, height, size.y), wallMat, room.transform);
+
+        // Room label
+        var label = new GameObject("ROOM_LABEL_" + name);
+        label.transform.SetParent(room.transform, false);
+        label.transform.localPosition = new Vector3(0, height - 0.3f, 0);
+        var tm = label.AddComponent<TMPro.TextMeshPro>();
+        tm.text = name.Replace("DrOffice", "Dr.'s Office").Replace("MainLab", "Main Laboratory");
+        tm.fontSize = 0.5f;
+        tm.alignment = TMPro.TextAlignmentOptions.Center;
+        tm.color = new Color(0.5f, 0.55f, 0.6f);
+        tm.transform.rotation = Quaternion.Euler(0, 180, 0);
+    }
+
+    private static void Corridor(GameObject parent, string name, Vector3 pos, Vector3 scale, Material mat)
+    {
+        Cube(name, pos, scale, mat, parent.transform);
+    }
+
+    private static void BuildDoors(GameObject arch, var M)
+    {
+        var doors = new GameObject("Doors");
+        doors.transform.SetParent(arch.transform, false);
+
+        Door(doors, "Door_MainEntrance", new Vector3(-6.5f, 1.25f, 0), new Vector3(0.25f, 2.5f, 2.2f), M.DoorFrame, M.DarkMetal);
+        Door(doors, "Door_Office", new Vector3(0, 1.25f, -6), new Vector3(2.2f, 2.5f, 0.25f), M.DoorFrame, M.DarkMetal);
+        Door(doors, "Door_Bathroom", new Vector3(9.5f, 1.25f, 0), new Vector3(0.25f, 2.5f, 2.2f), M.DoorFrame, M.DarkMetal);
+        Door(doors, "Door_ServerRoom", new Vector3(0, 1.25f, 6.5f), new Vector3(2.2f, 2.5f, 0.25f), M.DoorFrame, M.DarkMetal);
+        Door(doors, "Door_SecurityRoom", new Vector3(8, 1.25f, 6.5f), new Vector3(2.2f, 2.5f, 0.25f), M.DoorFrame, M.DarkMetal);
+        Door(doors, "Door_Storage", new Vector3(-4.5f, 1.25f, 10), new Vector3(0.25f, 2.5f, 2.2f), M.DoorFrame, M.DarkMetal);
+
+        // Secret sliding wall
+        var wall = Cube("SecretSlidingWall", new Vector3(0, 1.5f, -16), new Vector3(2.4f, 3f, 0.2f), M.DarkSteel, doors.transform);
+        // Painting on the wall (interactive switch)
+        var painting = PropFactory.WallPainting(doors.transform, new Vector3(0, 1.6f, -15.9f));
+        painting.name = "WallPainting";
+
+        // Security Room entry trigger
+        var gate = Cube("SecurityRoom_Task4_Gate", new Vector3(8, 1f, 7f), new Vector3(2f, 2.5f, 3f), null, doors.transform);
+        gate.GetComponent<Renderer>().enabled = false;
+        gate.GetComponent<BoxCollider>().isTrigger = true;
+    }
+
+    private static void Door(GameObject parent, string name, Vector3 pos, Vector3 scale, Material frameMat, Material handleMat)
+    {
+        Cube(name, pos, scale, frameMat, parent.transform);
+        // Handle
+        Vector3 handleOffset = scale.x > scale.z
+            ? new Vector3(scale.x * 0.4f, 0, 0.15f)
+            : new Vector3(0.15f, 0, scale.z * 0.4f);
+        Cube(name + "_Handle", pos + handleOffset, new Vector3(0.06f, 0.3f, 0.06f), handleMat, parent.transform);
+    }
+
+    // ==================== ROOM DRESSING ====================
+
+    private static void BuildRoomDressing(var M)
+    {
+        var dressing = new GameObject("RoomDressing");
+        dressing.transform.SetParent(root, false);
+
+        MainLabDressing(dressing, M);
+        OfficeDressing(dressing, M);
+        SecurityDressing(dressing, M);
+        ServerDressing(dressing, M);
+        StorageDressing(dressing, M);
+        BathroomDressing(dressing, M);
+        SecretRoomDressing(dressing, M);
+        EntranceDressing(dressing, M);
+    }
+
+    private static void MainLabDressing(GameObject parent, var M)
+    {
+        var lab = new GameObject("MainLab_Dressing");
+        lab.transform.SetParent(parent.transform, false);
+        lab.transform.localPosition = new Vector3(0, 0, 0);
+
+        // Central work table
+        PropFactory.LabTable(lab.transform, new Vector3(0, 0, 0));
+
+        // Chairs around table
+        PropFactory.LabChair(lab.transform, new Vector3(-2, 0, -1.7f));
+        PropFactory.LabChair(lab.transform, new Vector3(0, 0, -1.7f));
+        PropFactory.LabChair(lab.transform, new Vector3(2, 0, -1.7f));
+        PropFactory.LabChair(lab.transform, new Vector3(-2, 0, 1.7f));
+
+        // Monitors on table
+        PropFactory.Monitor(lab.transform, new Vector3(0, 1.35f, 0));
+        PropFactory.Monitor(lab.transform, new Vector3(-1.8f, 1.3f, 0.2f), new Vector3(0.9f, 0.6f, 0.06f), "SideMonitor");
+
+        // Laptop
+        PropFactory.Laptop(lab.transform, new Vector3(2, 0.96f, 0.2f));
+
+        // Cabinets along walls
+        PropFactory.Cabinet(lab.transform, new Vector3(-5.5f, 0, 5.5f), "LabCabinet_A");
+        PropFactory.Cabinet(lab.transform, new Vector3(5.5f, 0, 5.5f), "LabCabinet_B");
+
+        // Metal shelves
+        PropFactory.MetalShelf(lab.transform, new Vector3(-5.5f, 0, 3.5f), "LabShelf_A");
+        PropFactory.MetalShelf(lab.transform, new Vector3(5.5f, 0, 3.5f), "LabShelf_B");
+
+        // Chemical shelf (lab equipment)
+        var chemShelf = PropFactory.MetalShelf(lab.transform, new Vector3(-5.5f, 0, -4f), "ChemicalShelf");
+        // Bottles on shelf
+        for (int i = 0; i < 4; i++)
+        {
+            var bottle = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            bottle.name = "ChemicalBottle_" + i;
+            bottle.transform.SetParent(chemShelf.transform, false);
+            bottle.transform.localPosition = new Vector3(-0.6f + i * 0.4f, 0.65f, 0);
+            bottle.transform.localScale = new Vector3(0.08f, 0.15f, 0.08f);
+            Color[] chemColors = { M.Chemical.color, new Color(0.6f, 0.1f, 0.1f), new Color(0.1f, 0.1f, 0.6f), M.Chemical.color };
+            var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            mat.color = chemColors[i];
+            mat.EnableKeyword("_EMISSION");
+            mat.SetColor("_EmissionColor", chemColors[i] * 0.5f);
+            bottle.GetComponent<Renderer>().sharedMaterial = mat;
+        }
+
+        // Whiteboard
+        Cube("Whiteboard", new Vector3(0, 1.6f, -6.5f), new Vector3(4, 2, 0.08f), M.WhiteTile, lab.transform);
+        Cube("WhiteboardFrame", new Vector3(0, 1.6f, -6.52f), new Vector3(4.15f, 2.15f, 0.04f), M.DarkMetal, lab.transform);
+        // Marker tray
+        Cube("MarkerTray", new Vector3(0, 0.55f, -6.4f), new Vector3(1.5f, 0.04f, 0.1f), M.DarkMetal, lab.transform);
+
+        // Stopped watch on table (gameplay clue)
+        PropFactory.StoppedWatch(lab.transform, new Vector3(0.5f, 0.98f, 0.5f));
+
+        // Broken phone (gameplay clue)
+        PropFactory.BrokenPhone(lab.transform, new Vector3(-2.5f, 0.96f, 0.3f));
+
+        // Blood stain (crime scene dressing)
+        PropFactory.BloodStain(lab.transform, new Vector3(3, 0.01f, 3));
+
+        // Clue mark / evidence marker
+        Cube("EvidenceMarker_1", new Vector3(3, 0.1f, 2.5f), new Vector3(0.15f, 0.15f, 0.02f), M.CautionYellow, lab.transform);
+        Cube("EvidenceMarker_2", new Vector3(-1, 0.1f, 4), new Vector3(0.15f, 0.15f, 0.02f), M.CautionYellow, lab.transform);
+
+        // Side computer desk
+        var sideDesk = PropFactory.OfficeDesk(lab.transform, new Vector3(5.5f, 0, -4f), "SideDesk");
+        PropFactory.Monitor(lab.transform, new Vector3(5.5f, 1.0f, -4f), new Vector3(1.1f, 0.7f, 0.06f), "SideComputer");
+    }
+
+    private static void OfficeDressing(GameObject parent, var M)
+    {
+        var office = new GameObject("Office_Dressing");
+        office.transform.SetParent(parent.transform, false);
+        office.transform.localPosition = new Vector3(0, 0, -12);
+
+        // Main desk
+        PropFactory.OfficeDesk(office.transform, new Vector3(0, 0, -0.5f));
+        PropFactory.OfficeChair(office.transform, new Vector3(0, 0, -1.8f));
+
+        // Monitor on desk
+        PropFactory.Monitor(office.transform, new Vector3(0, 0.95f, -0.5f), new Vector3(1.4f, 0.85f, 0.06f), "OfficeMonitor");
+
+        // Desk lamp (key practical light)
+        PropFactory.DeskLamp(office.transform, new Vector3(1.5f, 0.78f, -0.2f));
+
+        // Bookshelf
+        PropFactory.Bookshelf(office.transform, new Vector3(-2.5f, 0, 1.5f));
+
+        // Cabinet
+        PropFactory.Cabinet(office.transform, new Vector3(2.5f, 0, 1.5f), "OfficeCabinet");
+
+        // Stuck drawer (gameplay object)
+        Cube("StuckDrawer", new Vector3(2.3f, 0.55f, -1.7f), new Vector3(1.0f, 0.5f, 0.7f), M.DarkWood, office.transform);
+        Cube("DrawerHandle", new Vector3(2.3f, 0.55f, -2.06f), new Vector3(0.2f, 0.04f, 0.04f), M.BushedSteel, office.transform);
+
+        // Personal items / papers
+        Cube("Papers", new Vector3(-0.5f, 0.78f, -0.3f), new Vector3(0.3f, 0.01f, 0.4f), M.WhiteTile, office.transform);
+        Cube("CoffeeMug", new Vector3(1f, 0.82f, 0.2f), new Vector3(0.08f, 0.1f, 0.08f), M.Ceramic, office.transform);
+
+        // Wall painting (secret switch)
+        PropFactory.WallPainting(office.transform, new Vector3(0, 1.6f, -3.35f));
+    }
+
+    private static void SecurityDressing(GameObject parent, var M)
+    {
+        var sec = new GameObject("Security_Dressing");
+        sec.transform.SetParent(parent.transform, false);
+        sec.transform.localPosition = new Vector3(14, 0, 10);
+
+        // CCTV monitor wall
+        PropFactory.CCTVMonitorWall(sec.transform, new Vector3(0, 1.5f, 2.8f));
+
+        // Console desk
+        PropFactory.OfficeDesk(sec.transform, new Vector3(0, 0, 0), "SecurityDesk");
+        PropFactory.OfficeChair(sec.transform, new Vector3(0, 0, -1.2f));
+
+        // Additional monitors on desk
+        PropFactory.Monitor(sec.transform, new Vector3(-0.8f, 0.95f, 0), new Vector3(0.7f, 0.5f, 0.05f), "DeskMonitor_A");
+        PropFactory.Monitor(sec.transform, new Vector3(0.8f, 0.95f, 0), new Vector3(0.7f, 0.5f, 0.05f), "DeskMonitor_B");
+
+        // Keyboard/mouse
+        Cube("Keyboard", new Vector3(0, 0.78f, -0.2f), new Vector3(0.4f, 0.01f, 0.15f), M.BlackFabric, sec.transform);
+        Cube("Mouse", new Vector3(0.6f, 0.78f, -0.2f), new Vector3(0.06f, 0.01f, 0.1f), M.BlackFabric, sec.transform);
+
+        // Coffee cup
+        Cube("CoffeeMug", new Vector3(-0.5f, 0.82f, 0.3f), new Vector3(0.07f, 0.09f, 0.07f), M.Ceramic, sec.transform);
+    }
+
+    private static void ServerDressing(GameObject parent, var M)
+    {
+        var srv = new GameObject("Server_Dressing");
+        srv.transform.SetParent(parent.transform, false);
+        srv.transform.localPosition = new Vector3(0, 0, 10);
+
+        // Server racks
+        for (int i = -2; i <= 2; i++)
+            PropFactory.ServerRack(srv.transform, new Vector3(i * 2, 0, 0), "ServerRack_" + (i + 2));
+
+        // Power restoration panel (gameplay object)
+        PropFactory.PowerPanel(srv.transform, new Vector3(3, 0, 2));
+
+        // Cable tray along floor
+        Cube("CableTray_Main", new Vector3(0, 0.05f, 3), new Vector3(6, 0.08f, 0.2f), M.Rubber, srv.transform);
+
+        // Temperature monitor
+        Cube("TempMonitor", new Vector3(-3, 1.5f, 2.8f), new Vector3(0.6f, 0.4f, 0.05f), M.ScreenOff, srv.transform);
+        Cube("TempDisplay", new Vector3(-3, 1.5f, 2.77f), new Vector3(0.5f, 0.3f, 0.01f), M.ScreenGreen, srv.transform);
+    }
+
+    private static void StorageDressing(GameObject parent, var M)
+    {
+        var stor = new GameObject("Storage_Dressing");
+        stor.transform.SetParent(parent.transform, false);
+        stor.transform.localPosition = new Vector3(-14, 0, 10);
+
+        // Metal shelves
+        PropFactory.MetalShelf(stor.transform, new Vector3(-2.5f, 0, -1.5f), "StorageShelf_A");
+        PropFactory.MetalShelf(stor.transform, new Vector3(2.5f, 0, -1.5f), "StorageShelf_B");
+
+        // Storage boxes
+        Color[] boxColors = { new Color(0.35f, 0.25f, 0.15f), new Color(0.3f, 0.3f, 0.32f), new Color(0.25f, 0.2f, 0.15f) };
+        for (int i = 0; i < 6; i++)
+        {
+            int row = i / 3;
+            int col = i % 3;
+            var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            box.name = "StorageBox_" + i;
+            box.transform.SetParent(stor.transform, false);
+            box.transform.localPosition = new Vector3(-2 + col * 1.5f, 0.35f + row * 0.7f, 1.5f);
+            box.transform.localScale = new Vector3(0.8f, 0.55f, 0.6f);
+            var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            mat.color = boxColors[i % boxColors.Length];
+            box.GetComponent<Renderer>().sharedMaterial = mat;
+        }
+
+        // Wrench (gameplay object - Task 7)
+        PropFactory.Wrench(stor.transform, new Vector3(1, 0.5f, -1.5f));
+
+        // Keychain half A (gameplay object)
+        PropFactory.KeychainHalf(stor.transform, new Vector3(-1, 0.5f, -1.5f), "KeychainHalf_A");
+
+        // Misc stored items
+        Cube("OldMonitor", new Vector3(-2, 0.5f, 2), new Vector3(0.8f, 0.6f, 0.1f), M.ScreenOff, stor.transform);
+        Cube("CardboardBox", new Vector3(2, 0.4f, 2), new Vector3(0.6f, 0.6f, 0.6f), M.LightWood, stor.transform);
+    }
+
+    private static void BathroomDressing(GameObject parent, var M)
+    {
+        var bath = new GameObject("Bathroom_Dressing");
+        bath.transform.SetParent(parent.transform, false);
+        bath.transform.localPosition = new Vector3(16, 0, 0);
+
+        // Sink
+        PropFactory.Sink(bath.transform, new Vector3(-1.5f, 0, 1.5f));
+
+        // Mirror
+        PropFactory.Mirror(bath.transform, new Vector3(-1.5f, 1.8f, 2.05f));
+
+        // Toilet
+        PropFactory.Toilet(bath.transform, new Vector3(1, 0, 1.5f));
+
+        // Stall partitions
+        PropFactory.StallPartition(bath.transform, new Vector3(0.5f, 0, -0.8f));
+        PropFactory.StallPartition(bath.transform, new Vector3(1.8f, 0, -0.8f));
+        PropFactory.StallPartition(bath.transform, new Vector3(1.15f, 0, -1.7f), true);
+
+        // Towel rack
+        Cube("TowelRack", new Vector3(-2.2f, 1.2f, 0), new Vector3(0.04f, 0.04f, 0.8f), M.BushedSteel, bath.transform);
+        Cube("Towel", new Vector3(-2.2f, 1.1f, 0), new Vector3(0.03f, 0.2f, 0.6f), M.WhiteTile, bath.transform);
+    }
+
+    private static void SecretRoomDressing(GameObject parent, var M)
+    {
+        var secret = new GameObject("Secret_Dressing");
+        secret.transform.SetParent(parent.transform, false);
+        secret.transform.localPosition = new Vector3(0, 0, -22);
+
+        // Central workstation
+        PropFactory.OfficeDesk(secret.transform, new Vector3(0, 0, -2.5f), "SecretDesk");
+        PropFactory.OfficeChair(secret.transform, new Vector3(0, 0, -3.8f));
+
+        // Main computer (gameplay - Task 9)
+        var compGo = Cube("SecretComputer", new Vector3(0, 0.82f, -2.5f), new Vector3(1.8f, 1.0f, 0.08f), M.ScreenOff, secret.transform);
+        Cube("SecretComputerScreen", new Vector3(0, 0.82f, -2.54f), new Vector3(1.6f, 0.9f, 0.01f), M.ScreenBlue, secret.transform);
+
+        // Project ECHO documents
+        Cube("ECHO_Documents", new Vector3(1.5f, 0.82f, -2.3f), new Vector3(0.5f, 0.02f, 0.35f), M.WhiteTile, secret.transform);
+        Cube("ECHO_File1", new Vector3(1.3f, 0.84f, -2.3f), new Vector3(0.3f, 0.01f, 0.2f), M.CyanGlow, secret.transform);
+        Cube("ECHO_File2", new Vector3(1.7f, 0.84f, -2.3f), new Vector3(0.3f, 0.01f, 0.2f), M.CyanGlow, secret.transform);
+
+        // Audio recorder
+        Cube("AudioRecorder", new Vector3(-1.5f, 0.82f, -2.3f), new Vector3(0.3f, 0.12f, 0.2f), M.DarkMetal, secret.transform);
+        Cube("RecorderButton", new Vector3(-1.5f, 0.89f, -2.2f), new Vector3(0.06f, 0.02f, 0.02f), M.AlertRed, secret.transform);
+
+        // Power panel
+        PropFactory.PowerPanel(secret.transform, new Vector3(3, 0, -1));
+
+        // Second keychain half
+        PropFactory.KeychainHalf(secret.transform, new Vector3(3.5f, 0.82f, -2.5f), "KeychainHalf_B");
+
+        // Server rack
+        PropFactory.ServerRack(secret.transform, new Vector3(-3, 0, 0), "SecretServerRack");
+
+        // Eerie equipment dressing
+        Cube("MysteryDevice", new Vector3(3, 0.5f, 1), new Vector3(0.8f, 1.0f, 0.6f), M.DarkMetal, secret.transform);
+        Sphere("MysteryOrb", new Vector3(3, 1.1f, 1), new Vector3(0.25f, 0.25f, 0.25f), M.DimBlueGlow, secret.transform);
+
+        // Final decision console (gameplay - Task 10)
+        Cube("FinalDecisionConsole", new Vector3(0, 0.8f, 0), new Vector3(2.5f, 1.0f, 0.5f), M.DarkMetal, secret.transform);
+        Cube("ConsoleScreen", new Vector3(0, 1.1f, 0.26f), new Vector3(2.2f, 0.6f, 0.01f), M.ScreenBlue, secret.transform);
+    }
+
+    private static void EntranceDressing(GameObject parent, var M)
+    {
+        var entrance = new GameObject("Entrance_Dressing");
+        entrance.transform.SetParent(parent.transform, false);
+        entrance.transform.localPosition = new Vector3(-20, 0, 0);
+
+        // Reception desk
+        PropFactory.OfficeDesk(entrance.transform, new Vector3(0, 0, 1), "ReceptionDesk");
+        PropFactory.OfficeChair(entrance.transform, new Vector3(0, 0, -0.5f));
+
+        // Reception computer
+        PropFactory.Monitor(entrance.transform, new Vector3(0, 0.95f, 1), new Vector3(1.0f, 0.65f, 0.06f), "ReceptionMonitor");
+        PropFactory.Laptop(entrance.transform, new Vector3(-1.2f, 0.82f, 1.2f));
+
+        // Waiting bench
+        Cube("WaitingBench", new Vector3(0, 0.3f, -1.5f), new Vector3(2f, 0.6f, 0.5f), M.DarkWood, entrance.transform);
+
+        // Lockpick (gameplay - Task 1)
+        PropFactory.Lockpick(entrance.transform, new Vector3(1.5f, 0.85f, 1));
+
+        // Facility sign
+        Cube("FacilitySign", new Vector3(0, 2.5f, -2.8f), new Vector3(3f, 0.6f, 0.05f), M.DarkMetal, entrance.transform);
+        var signText = new GameObject("SignText");
+        signText.transform.SetParent(entrance.transform, false);
+        signText.transform.localPosition = new Vector3(0, 2.5f, -2.75f);
+        var tm = signText.AddComponent<TMPro.TextMeshPro>();
+        tm.text = "CLASSIFIED RESEARCH FACILITY\nAUTHORIZED PERSONNEL ONLY";
+        tm.fontSize = 0.2f;
+        tm.alignment = TMPro.TextAlignmentOptions.Center;
+        tm.color = new Color(0.8f, 0.2f, 0.2f);
+    }
+
+    // ==================== HELPERS ====================
+
+    private static GameObject Cube(string name, Vector3 pos, Vector3 scale, Material mat, Transform parent)
+    {
+        var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        go.name = name;
+        go.transform.SetParent(parent, false);
+        go.transform.localPosition = pos;
+        go.transform.localScale = scale;
+        if (mat != null) go.GetComponent<Renderer>().sharedMaterial = mat;
+        return go;
+    }
+
+    private static void AddPreviewCamera()
+    {
+        var cam = new GameObject("EnvironmentPreviewCamera");
+        cam.transform.SetParent(root, false);
+        cam.transform.position = new Vector3(0, 20, -30);
+        cam.transform.rotation = Quaternion.Euler(38, 0, 0);
+        var c = cam.AddComponent<Camera>();
+        c.fieldOfView = 55;
+        c.nearClipPlane = 0.3f;
+        c.farClipPlane = 100f;
+    }
 }
