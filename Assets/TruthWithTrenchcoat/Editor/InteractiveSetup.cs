@@ -198,7 +198,7 @@ namespace TruthWithTrenchcoat.EditorTools
             var missing = new GameObject("MissingFootageDisplay");
             missing.transform.SetParent(targetGo.transform, false);
             missing.transform.localPosition = new Vector3(0, 1.5f, 0.2f);
-            var tm = missing.AddComponent TMPro.TextMeshPro>();
+            var tm = missing.AddComponent<TMPro.TextMeshPro>();
             tm.text = "CCTV: 1.5 HOUR GAP\n13:38 - 14:52 MISSING";
             tm.fontSize = 0.3f;
             tm.alignment = TMPro.TextAlignmentOptions.Center;
