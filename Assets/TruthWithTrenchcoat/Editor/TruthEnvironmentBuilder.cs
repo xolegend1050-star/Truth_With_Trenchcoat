@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
 using TruthWithTrenchcoat.Core;
+using M = TruthWithTrenchcoat.EditorTools.MaterialLibrary;
 
 /// <summary>
 /// Master environment builder. Generates the complete dark sci-fi research facility
@@ -24,12 +25,11 @@ public static class TruthEnvironmentBuilder
         root = go.transform;
 
         // Initialize systems
-        TruthWithTrenchcoat.EditorTools.MaterialLibrary.Initialize();
-        var M = TruthWithTrenchcoat.EditorTools.MaterialLibrary;
+        M.Initialize();
 
         // Build everything
-        BuildArchitecture(M);
-        BuildRoomDressing(M);
+        BuildArchitecture();
+        BuildRoomDressing();
         TruthWithTrenchcoat.EditorTools.LightingRig.Build(root);
         TruthWithTrenchcoat.EditorTools.InteractiveSetup.Wire(root);
         AddPreviewCamera();
@@ -51,7 +51,7 @@ public static class TruthEnvironmentBuilder
 
     // ==================== ARCHITECTURE ====================
 
-    private static void BuildArchitecture(var M)
+    private static void BuildArchitecture()
     {
         var arch = new GameObject("Architecture");
         arch.transform.SetParent(root, false);
@@ -91,7 +91,7 @@ public static class TruthEnvironmentBuilder
         Corridor(arch, "Corr_Office_Secret", new Vector3(0, -0.05f, -17), new Vector3(2.4f, 0.1f, 7), M.FloorDark);
 
         // Doors
-        BuildDoors(arch, M);
+        BuildDoors(arch);
     }
 
     private static void Room(GameObject parent, string name, Vector3 center, Vector2 size, float height,
@@ -130,7 +130,7 @@ public static class TruthEnvironmentBuilder
         Cube(name, pos, scale, mat, parent.transform);
     }
 
-    private static void BuildDoors(GameObject arch, var M)
+    private static void BuildDoors(GameObject arch)
     {
         var doors = new GameObject("Doors");
         doors.transform.SetParent(arch.transform, false);
@@ -166,22 +166,22 @@ public static class TruthEnvironmentBuilder
 
     // ==================== ROOM DRESSING ====================
 
-    private static void BuildRoomDressing(var M)
+    private static void BuildRoomDressing()
     {
         var dressing = new GameObject("RoomDressing");
         dressing.transform.SetParent(root, false);
 
-        MainLabDressing(dressing, M);
-        OfficeDressing(dressing, M);
-        SecurityDressing(dressing, M);
-        ServerDressing(dressing, M);
-        StorageDressing(dressing, M);
-        BathroomDressing(dressing, M);
-        SecretRoomDressing(dressing, M);
-        EntranceDressing(dressing, M);
+        MainLabDressing(dressing);
+        OfficeDressing(dressing);
+        SecurityDressing(dressing);
+        ServerDressing(dressing);
+        StorageDressing(dressing);
+        BathroomDressing(dressing);
+        SecretRoomDressing(dressing);
+        EntranceDressing(dressing);
     }
 
-    private static void MainLabDressing(GameObject parent, var M)
+    private static void MainLabDressing(GameObject parent)
     {
         var lab = new GameObject("MainLab_Dressing");
         lab.transform.SetParent(parent.transform, false);
@@ -253,7 +253,7 @@ public static class TruthEnvironmentBuilder
         PropFactory.Monitor(lab.transform, new Vector3(5.5f, 1.0f, -4f), new Vector3(1.1f, 0.7f, 0.06f), "SideComputer");
     }
 
-    private static void OfficeDressing(GameObject parent, var M)
+    private static void OfficeDressing(GameObject parent)
     {
         var office = new GameObject("Office_Dressing");
         office.transform.SetParent(parent.transform, false);
@@ -287,7 +287,7 @@ public static class TruthEnvironmentBuilder
         PropFactory.WallPainting(office.transform, new Vector3(0, 1.6f, -3.35f));
     }
 
-    private static void SecurityDressing(GameObject parent, var M)
+    private static void SecurityDressing(GameObject parent)
     {
         var sec = new GameObject("Security_Dressing");
         sec.transform.SetParent(parent.transform, false);
@@ -312,7 +312,7 @@ public static class TruthEnvironmentBuilder
         Cube("CoffeeMug", new Vector3(-0.5f, 0.82f, 0.3f), new Vector3(0.07f, 0.09f, 0.07f), M.Ceramic, sec.transform);
     }
 
-    private static void ServerDressing(GameObject parent, var M)
+    private static void ServerDressing(GameObject parent)
     {
         var srv = new GameObject("Server_Dressing");
         srv.transform.SetParent(parent.transform, false);
@@ -333,7 +333,7 @@ public static class TruthEnvironmentBuilder
         Cube("TempDisplay", new Vector3(-3, 1.5f, 2.77f), new Vector3(0.5f, 0.3f, 0.01f), M.ScreenGreen, srv.transform);
     }
 
-    private static void StorageDressing(GameObject parent, var M)
+    private static void StorageDressing(GameObject parent)
     {
         var stor = new GameObject("Storage_Dressing");
         stor.transform.SetParent(parent.transform, false);
@@ -370,7 +370,7 @@ public static class TruthEnvironmentBuilder
         Cube("CardboardBox", new Vector3(2, 0.4f, 2), new Vector3(0.6f, 0.6f, 0.6f), M.LightWood, stor.transform);
     }
 
-    private static void BathroomDressing(GameObject parent, var M)
+    private static void BathroomDressing(GameObject parent)
     {
         var bath = new GameObject("Bathroom_Dressing");
         bath.transform.SetParent(parent.transform, false);
@@ -395,7 +395,7 @@ public static class TruthEnvironmentBuilder
         Cube("Towel", new Vector3(-2.2f, 1.1f, 0), new Vector3(0.03f, 0.2f, 0.6f), M.WhiteTile, bath.transform);
     }
 
-    private static void SecretRoomDressing(GameObject parent, var M)
+    private static void SecretRoomDressing(GameObject parent)
     {
         var secret = new GameObject("Secret_Dressing");
         secret.transform.SetParent(parent.transform, false);
@@ -436,7 +436,7 @@ public static class TruthEnvironmentBuilder
         Cube("ConsoleScreen", new Vector3(0, 1.1f, 0.26f), new Vector3(2.2f, 0.6f, 0.01f), M.ScreenBlue, secret.transform);
     }
 
-    private static void EntranceDressing(GameObject parent, var M)
+    private static void EntranceDressing(GameObject parent)
     {
         var entrance = new GameObject("Entrance_Dressing");
         entrance.transform.SetParent(parent.transform, false);
@@ -473,6 +473,17 @@ public static class TruthEnvironmentBuilder
     private static GameObject Cube(string name, Vector3 pos, Vector3 scale, Material mat, Transform parent)
     {
         var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        go.name = name;
+        go.transform.SetParent(parent, false);
+        go.transform.localPosition = pos;
+        go.transform.localScale = scale;
+        if (mat != null) go.GetComponent<Renderer>().sharedMaterial = mat;
+        return go;
+    }
+
+    private static GameObject Sphere(string name, Vector3 pos, Vector3 scale, Material mat, Transform parent)
+    {
+        var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         go.name = name;
         go.transform.SetParent(parent, false);
         go.transform.localPosition = pos;
