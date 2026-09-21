@@ -1,10 +1,13 @@
 using UnityEngine;
-
+using UnityEngine.UI;
+using TMPro;
+using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using TruthWithTrenchcoat.Core;
 using TruthWithTrenchcoat.Interaction;
 using TruthWithTrenchcoat.Puzzles;
 using TruthWithTrenchcoat.Runtime;
+using TruthWithTrenchcoat.UI;
 
 namespace TruthWithTrenchcoat.EditorTools
 {
