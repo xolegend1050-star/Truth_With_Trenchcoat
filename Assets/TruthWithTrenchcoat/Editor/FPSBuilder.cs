@@ -115,7 +115,7 @@ namespace TruthWithTrenchcoat.EditorTools
             var interactor = new GameObject("FPS_Interaction");
             interactor.transform.SetParent(parent, false);
 
-            var fpsPlayer = Object.FindObjectOfType<FPSPlayer>();
+            var fpsPlayer = Object.FindAnyObjectByType<FPSPlayer>();
             var fps = interactor.AddComponent<FPSInteraction>();
             fps.playerCamera = fpsPlayer != null ? fpsPlayer.playerCamera : Camera.main;
         }
@@ -125,7 +125,7 @@ namespace TruthWithTrenchcoat.EditorTools
             var bridge = new GameObject("PuzzleBridge");
             bridge.transform.SetParent(parent, false);
 
-            var fpsPlayer = Object.FindObjectOfType<FPSPlayer>();
+            var fpsPlayer = Object.FindAnyObjectByType<FPSPlayer>();
             var handler = bridge.AddComponent<FPSPuzzleHandler>();
             handler.playerCamera = fpsPlayer != null ? fpsPlayer.playerCamera : Camera.main;
         }
@@ -231,7 +231,7 @@ namespace TruthWithTrenchcoat.EditorTools
             promptTMP.text = "";
 
             // Wire prompt to FPS interaction
-            var fpsInteraction = Object.FindObjectOfType<FPSInteraction>();
+            var fpsInteraction = Object.FindAnyObjectByType<FPSInteraction>();
             if (fpsInteraction != null)
                 fpsInteraction.promptText = promptTMP;
 

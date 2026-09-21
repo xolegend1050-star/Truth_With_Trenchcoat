@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.XR.Interaction.Toolkit;
+
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using TruthWithTrenchcoat.Core;
 using TruthWithTrenchcoat.Interaction;
@@ -115,7 +115,7 @@ namespace TruthWithTrenchcoat.EditorTools
             main.transform.SetParent(lights.transform, false);
             main.transform.position = new Vector3(0, 2.8f, 0);
             var ml = main.AddComponent<Light>();
-            ml.type = LightType.Area;
+            ml.type = LightType.Rectangle;
             ml.intensity = 800f;
             ml.range = 20f;
             ml.transform.localScale = new Vector3(5, 1, 5);

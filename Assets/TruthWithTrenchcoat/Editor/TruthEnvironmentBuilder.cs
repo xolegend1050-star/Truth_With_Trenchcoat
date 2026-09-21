@@ -4,6 +4,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
 using TruthWithTrenchcoat.Core;
 using M = TruthWithTrenchcoat.EditorTools.MaterialLibrary;
+using PropFactory = TruthWithTrenchcoat.EditorTools.PropFactory;
 
 /// <summary>
 /// Master environment builder. Generates the complete dark sci-fi research facility
@@ -277,7 +278,7 @@ public static class TruthEnvironmentBuilder
 
         // Stuck drawer (gameplay object)
         Cube("StuckDrawer", new Vector3(2.3f, 0.55f, -1.7f), new Vector3(1.0f, 0.5f, 0.7f), M.DarkWood, office.transform);
-        Cube("DrawerHandle", new Vector3(2.3f, 0.55f, -2.06f), new Vector3(0.2f, 0.04f, 0.04f), M.BushedSteel, office.transform);
+        Cube("DrawerHandle", new Vector3(2.3f, 0.55f, -2.06f), new Vector3(0.2f, 0.04f, 0.04f), M.BrushedSteel, office.transform);
 
         // Personal items / papers
         Cube("Papers", new Vector3(-0.5f, 0.78f, -0.3f), new Vector3(0.3f, 0.01f, 0.4f), M.WhiteTile, office.transform);
@@ -391,7 +392,7 @@ public static class TruthEnvironmentBuilder
         PropFactory.StallPartition(bath.transform, new Vector3(1.15f, 0, -1.7f), true);
 
         // Towel rack
-        Cube("TowelRack", new Vector3(-2.2f, 1.2f, 0), new Vector3(0.04f, 0.04f, 0.8f), M.BushedSteel, bath.transform);
+        Cube("TowelRack", new Vector3(-2.2f, 1.2f, 0), new Vector3(0.04f, 0.04f, 0.8f), M.BrushedSteel, bath.transform);
         Cube("Towel", new Vector3(-2.2f, 1.1f, 0), new Vector3(0.03f, 0.2f, 0.6f), M.WhiteTile, bath.transform);
     }
 

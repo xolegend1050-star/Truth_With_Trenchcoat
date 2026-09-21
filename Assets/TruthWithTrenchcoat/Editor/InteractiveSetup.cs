@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using TruthWithTrenchcoat.Core;
 using TruthWithTrenchcoat.Interaction;
@@ -145,10 +145,10 @@ namespace TruthWithTrenchcoat.EditorTools
             if (puzzle == null) puzzle = puzzleRoot.AddComponent<ColorSequencePuzzle>();
 
             // Find the 4 color boxes and wire them
-            var blueBox = FindDeep(puzzleRoot, "ColorBox_Blue");
-            var greenBox = FindDeep(puzzleRoot, "ColorBox_Green");
-            var yellowBox = FindDeep(puzzleRoot, "ColorBox_Yellow");
-            var redBox = FindDeep(puzzleRoot, "ColorBox_Red");
+            var blueBox = FindDeep(puzzleRoot.transform, "ColorBox_Blue");
+            var greenBox = FindDeep(puzzleRoot.transform, "ColorBox_Green");
+            var yellowBox = FindDeep(puzzleRoot.transform, "ColorBox_Yellow");
+            var redBox = FindDeep(puzzleRoot.transform, "ColorBox_Red");
 
             var boxes = new System.Collections.Generic.List<ColorSequencePuzzle.ColorBox>();
 

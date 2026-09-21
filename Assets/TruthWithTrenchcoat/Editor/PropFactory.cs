@@ -29,7 +29,7 @@ namespace TruthWithTrenchcoat.EditorTools
             // Drawer unit
             Cube("DrawerUnit", pos + new Vector3(1.3f, 0.35f, 0), new Vector3(0.8f, 0.7f, 1.2f), MaterialLibrary.DarkMetal, parent);
             for (int i = 0; i < 3; i++)
-                Cube("DrawerFace", pos + new Vector3(1.3f, 0.15f + i * 0.22f, -0.62f), new Vector3(0.7f, 0.18f, 0.04f), MaterialLibrary.BushedSteel, parent);
+                Cube("DrawerFace", pos + new Vector3(1.3f, 0.15f + i * 0.22f, -0.62f), new Vector3(0.7f, 0.18f, 0.04f), MaterialLibrary.BrushedSteel, parent);
             // Legs
             foreach (float x in new[] { -1.5f, 1.5f })
                 Cube("Leg", pos + new Vector3(x, 0.37f, 0.55f), new Vector3(0.08f, 0.75f, 0.08f), MaterialLibrary.DarkMetal, parent);
@@ -168,7 +168,7 @@ namespace TruthWithTrenchcoat.EditorTools
         public static GameObject DeskLamp(Transform parent, Vector3 pos)
         {
             Cube("LampBase", pos, new Vector3(0.2f, 0.03f, 0.2f), MaterialLibrary.DarkMetal, parent);
-            Cube("LampArm", pos + Vector3.up * 0.35f, new Vector3(0.03f, 0.7f, 0.03f), MaterialLibrary.BushedSteel, parent);
+            Cube("LampArm", pos + Vector3.up * 0.35f, new Vector3(0.03f, 0.7f, 0.03f), MaterialLibrary.BrushedSteel, parent);
             Cube("LampHead", pos + new Vector3(0, 0.7f, 0), new Vector3(0.25f, 0.06f, 0.18f), MaterialLibrary.DarkMetal, parent);
             Cube("LampBulb", pos + new Vector3(0, 0.67f, 0), new Vector3(0.15f, 0.02f, 0.1f), MaterialLibrary.WhiteGlow, parent);
             return null;
@@ -178,7 +178,7 @@ namespace TruthWithTrenchcoat.EditorTools
         {
             Cube(name, pos + Vector3.up * 0.9f, new Vector3(1.0f, 1.8f, 0.6f), MaterialLibrary.DarkMetal, parent);
             for (int i = 0; i < 3; i++)
-                Cube("CabinetDrawer_" + i, pos + new Vector3(0, 0.35f + i * 0.5f, -0.31f), new Vector3(0.85f, 0.4f, 0.04f), MaterialLibrary.BushedSteel, parent);
+                Cube("CabinetDrawer_" + i, pos + new Vector3(0, 0.35f + i * 0.5f, -0.31f), new Vector3(0.85f, 0.4f, 0.04f), MaterialLibrary.BrushedSteel, parent);
             return null;
         }
 
@@ -196,8 +196,8 @@ namespace TruthWithTrenchcoat.EditorTools
         {
             Cube("SinkBase", pos, new Vector3(0.8f, 0.8f, 0.5f), MaterialLibrary.Ceramic, parent);
             Cube("SinkBasin", pos + new Vector3(0, 0.42f, 0), new Vector3(0.6f, 0.08f, 0.35f), MaterialLibrary.WhiteTile, parent);
-            Cube("SinkFaucet", pos + new Vector3(0, 0.55f, -0.15f), new Vector3(0.04f, 0.15f, 0.04f), MaterialLibrary.BushedSteel, parent);
-            Cube("SinkSpout", pos + new Vector3(0, 0.55f, 0.05f), new Vector3(0.03f, 0.03f, 0.2f), MaterialLibrary.BushedSteel, parent);
+            Cube("SinkFaucet", pos + new Vector3(0, 0.55f, -0.15f), new Vector3(0.04f, 0.15f, 0.04f), MaterialLibrary.BrushedSteel, parent);
+            Cube("SinkSpout", pos + new Vector3(0, 0.55f, 0.05f), new Vector3(0.03f, 0.03f, 0.2f), MaterialLibrary.BrushedSteel, parent);
             return null;
         }
 
@@ -230,7 +230,7 @@ namespace TruthWithTrenchcoat.EditorTools
 
         public static GameObject StoppedWatch(Transform parent, Vector3 pos)
         {
-            Cyl("WatchBody", pos, new Vector3(0.12f, 0.02f, 0.12f), MaterialLibrary.BushedSteel, parent);
+            Cyl("WatchBody", pos, new Vector3(0.12f, 0.02f, 0.12f), MaterialLibrary.BrushedSteel, parent);
             Cube("WatchFace", pos + Vector3.up * 0.025f, new Vector3(0.1f, 0.005f, 0.1f), MaterialLibrary.WhiteTile, parent);
             Cube("WatchHands", pos + Vector3.up * 0.03f, new Vector3(0.06f, 0.003f, 0.003f), MaterialLibrary.DarkMetal, parent);
             // Time text 14:23
@@ -251,7 +251,7 @@ namespace TruthWithTrenchcoat.EditorTools
 
         public static GameObject Wrench(Transform parent, Vector3 pos)
         {
-            Cube("WrenchHandle", pos, new Vector3(0.4f, 0.04f, 0.04f), MaterialLibrary.BushedSteel, parent);
+            Cube("WrenchHandle", pos, new Vector3(0.4f, 0.04f, 0.04f), MaterialLibrary.BrushedSteel, parent);
             Cube("WrenchHead", pos + new Vector3(0.22f, 0, 0), new Vector3(0.08f, 0.08f, 0.04f), MaterialLibrary.DarkSteel, parent);
             Cube("WrenchJaw", pos + new Vector3(0.26f, 0.02f, 0), new Vector3(0.04f, 0.04f, 0.03f), MaterialLibrary.DarkSteel, parent);
             return null;
@@ -259,7 +259,7 @@ namespace TruthWithTrenchcoat.EditorTools
 
         public static GameObject KeychainHalf(Transform parent, Vector3 pos, string name = "KeychainHalf")
         {
-            Cube(name, pos, new Vector3(0.12f, 0.03f, 0.06f), MaterialLibrary.BushedSteel, parent);
+            Cube(name, pos, new Vector3(0.12f, 0.03f, 0.06f), MaterialLibrary.BrushedSteel, parent);
             Cyl("KeychainRing", pos + new Vector3(-0.07f, 0, 0), new Vector3(0.03f, 0.005f, 0.03f), MaterialLibrary.DarkMetal, parent);
             return null;
         }
@@ -280,7 +280,7 @@ namespace TruthWithTrenchcoat.EditorTools
 
         public static GameObject Lockpick(Transform parent, Vector3 pos)
         {
-            Cube("LockpickHandle", pos, new Vector3(0.15f, 0.02f, 0.02f), MaterialLibrary.BushedSteel, parent);
+            Cube("LockpickHandle", pos, new Vector3(0.15f, 0.02f, 0.02f), MaterialLibrary.BrushedSteel, parent);
             Cube("LockpickTip", pos + new Vector3(0.1f, 0.01f, 0), new Vector3(0.06f, 0.01f, 0.015f), MaterialLibrary.DarkSteel, parent);
             Cube("LockpickBend", pos + new Vector3(0.12f, 0.015f, 0), new Vector3(0.02f, 0.015f, 0.015f), MaterialLibrary.DarkSteel, parent);
             return null;
@@ -289,8 +289,8 @@ namespace TruthWithTrenchcoat.EditorTools
         public static GameObject Masterkey(Transform parent, Vector3 pos)
         {
             Cube("MasterkeyHandle", pos, new Vector3(0.18f, 0.03f, 0.04f), MaterialLibrary.CautionYellow, parent);
-            Cube("MasterkeyBlade", pos + new Vector3(0.12f, 0, 0), new Vector3(0.1f, 0.02f, 0.03f), MaterialLibrary.BushedSteel, parent);
-            Cube("MasterkeyTeeth", pos + new Vector3(0.18f, -0.01f, 0), new Vector3(0.03f, 0.015f, 0.025f), MaterialLibrary.BushedSteel, parent);
+            Cube("MasterkeyBlade", pos + new Vector3(0.12f, 0, 0), new Vector3(0.1f, 0.02f, 0.03f), MaterialLibrary.BrushedSteel, parent);
+            Cube("MasterkeyTeeth", pos + new Vector3(0.18f, -0.01f, 0), new Vector3(0.03f, 0.015f, 0.025f), MaterialLibrary.BrushedSteel, parent);
             return null;
         }
 

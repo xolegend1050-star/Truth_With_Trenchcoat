@@ -166,7 +166,7 @@ namespace TruthWithTrenchcoat.EditorTools
             go.transform.position = pos;
             go.transform.localScale = scale;
             var light = go.AddComponent<Light>();
-            light.type = LightType.Area;
+            light.type = LightType.Rectangle;
             light.color = spec.color;
             light.intensity = spec.intensity;
             light.range = spec.range;
